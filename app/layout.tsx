@@ -1,5 +1,7 @@
+import Footer from "./components/Footer";
 import type { Metadata } from "next";
 import "./globals.css";
+import "./theme.css";
 
 export const metadata: Metadata = {
   title: "CreatorKit — Free Image & Creator Tools",
@@ -10,7 +12,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+  {children}
+  <Footer />
+</body>
     </html>
   );
 }

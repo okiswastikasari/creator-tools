@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import ToolLayout from "../components/ToolLayout";
 import { useEffect, useRef, useState } from "react";
 import { getPaletteSync } from "colorthief";
 
@@ -195,39 +195,22 @@ setColors(hexColors);
   }
 
   return (
-    <main className="min-h-screen bg-[#090b10] px-5 py-10 text-white md:px-8 md:py-12">
-      <div className="mx-auto max-w-5xl">
-        <Link
-          href="/"
-          className="mb-8 inline-flex text-sm text-zinc-300 transition hover:text-violet-400"
-        >
-          ← Back to CreatorKit
-        </Link>
+    <ToolLayout
+      eyebrow="Free design tool"
+      title="Color Palette"
+      description="Extract useful colors from any image, copy their HEX values, and export a shareable palette."
+      icon={<span>◉</span>}
+    >
 
-        <header className="mb-10 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-violet-400">
-            Free design tool
-          </p>
-
-          <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-            Color Palette
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-400 md:text-lg">
-            Extract six useful colors from any image. Click a color to copy its
-            HEX code or download the complete palette as a PNG.
-          </p>
-        </header>
-
-        <section className="rounded-3xl border border-zinc-800 bg-[#12151d] p-5 md:p-10">
-          <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-[#0d1016] px-6 text-center transition hover:border-violet-500">
+      <div>
+          <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 dark:border-white/15 bg-[#0d1016] px-6 text-center transition hover:border-violet-500">
             <span className="mb-4 text-4xl">🎨</span>
 
             <span className="text-lg font-semibold">
               Choose an image
             </span>
 
-            <span className="mt-2 text-sm text-zinc-500">
+            <span className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
               JPG, PNG, or WebP
             </span>
 
@@ -240,14 +223,14 @@ setColors(hexColors);
           </label>
 
           {errorMessage && (
-            <div className="mt-5 rounded-xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            <div className="mt-5 rounded-2xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm text-red-300">
               {errorMessage}
             </div>
           )}
 
           {originalFile && previewUrl && (
             <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-black">
+              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-100 dark:bg-black/40">
                 <img
                   ref={imageRef}
                   src={previewUrl}
@@ -256,23 +239,23 @@ setColors(hexColors);
                   className="h-96 w-full object-contain"
                 />
 
-                <div className="border-t border-zinc-800 bg-[#0d1016] p-4">
+                <div className="border-t border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-4">
                   <p className="truncate text-sm font-medium">
                     {originalFile.name}
                   </p>
 
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                     Original size: {formatBytes(originalFile.size)}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-[#0d1016] p-6">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-6">
                 <h2 className="text-xl font-semibold">
                   Palette settings
                 </h2>
 
-                <p className="mt-3 text-sm leading-6 text-zinc-400">
+                <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                   CreatorKit will find six dominant colors from the selected
                   image.
                 </p>
@@ -281,7 +264,7 @@ setColors(hexColors);
                   type="button"
                   onClick={handleGeneratePalette}
                   disabled={isGenerating}
-                  className="mt-8 w-full rounded-xl bg-violet-500 px-5 py-3 font-semibold transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-8 w-full rounded-2xl bg-violet-600 px-5 py-3 font-semibold transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isGenerating
                     ? "Generating palette..."
@@ -292,7 +275,7 @@ setColors(hexColors);
                   <button
                     type="button"
                     onClick={handleDownloadPalette}
-                    className="mt-3 w-full rounded-xl border border-zinc-700 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300"
+                    className="mt-3 w-full rounded-2xl border border-zinc-300 dark:border-white/15 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300"
                   >
                     Download palette PNG
                   </button>
@@ -302,14 +285,14 @@ setColors(hexColors);
           )}
 
           {colors.length > 0 && (
-            <div className="mt-8 rounded-2xl border border-zinc-800 bg-[#0d1016] p-5 md:p-6">
+            <div className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5 md:p-6">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold">
                     Extracted colors
                   </h2>
 
-                  <p className="mt-1 text-sm text-zinc-500">
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
                     Click any color to copy its HEX code.
                   </p>
                 </div>
@@ -339,7 +322,7 @@ setColors(hexColors);
                         {color}
                       </span>
 
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-500">
                         Copy
                       </span>
                     </div>
@@ -348,8 +331,7 @@ setColors(hexColors);
               </div>
             </div>
           )}
-        </section>
       </div>
-    </main>
+    </ToolLayout>
   );
 }

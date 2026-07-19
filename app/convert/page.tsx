@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import ToolLayout from "../components/ToolLayout";
 import { useEffect, useState } from "react";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
@@ -190,39 +190,22 @@ export default function ConvertPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#090b10] px-5 py-10 text-white md:px-8 md:py-12">
-      <div className="mx-auto max-w-5xl">
-        <Link
-          href="/"
-          className="mb-8 inline-flex items-center text-sm text-zinc-300 transition hover:text-violet-400"
-        >
-          ← Back to CreatorKit
-        </Link>
+    <ToolLayout
+      eyebrow="Free image tool"
+      title="Convert Image"
+      description="Convert JPG, PNG, and WebP images locally with quality controls and instant previews."
+      icon={<span>↻</span>}
+    >
 
-        <header className="mb-10 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-violet-400">
-            Free image tool
-          </p>
-
-          <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-            Convert Image
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-400 md:text-lg">
-            Convert JPG, PNG, and WebP images directly in your browser.
-            Your files are not uploaded to a server.
-          </p>
-        </header>
-
-        <section className="rounded-3xl border border-zinc-800 bg-[#12151d] p-5 md:p-10">
-          <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-[#0d1016] px-6 text-center transition hover:border-violet-500">
+      <div>
+          <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 dark:border-white/15 bg-[#0d1016] px-6 text-center transition hover:border-violet-500">
             <span className="mb-4 text-4xl">🔄</span>
 
             <span className="text-lg font-semibold">
               Choose an image
             </span>
 
-            <span className="mt-2 text-sm text-zinc-500">
+            <span className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
               JPG, PNG, or WebP
             </span>
 
@@ -235,32 +218,32 @@ export default function ConvertPage() {
           </label>
 
           {errorMessage && (
-            <div className="mt-5 rounded-xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            <div className="mt-5 rounded-2xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm text-red-300">
               {errorMessage}
             </div>
           )}
 
           {originalFile && (
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
-              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-black">
+              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-100 dark:bg-black/40">
                 <img
                   src={previewUrl}
                   alt="Original image preview"
                   className="h-80 w-full object-contain"
                 />
 
-                <div className="border-t border-zinc-800 bg-[#0d1016] p-4">
+                <div className="border-t border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-4">
                   <p className="truncate text-sm font-medium">
                     {originalFile.name}
                   </p>
 
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                     Original: {formatBytes(originalFile.size)}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-[#0d1016] p-6">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-6">
                 <h2 className="text-xl font-semibold">
                   Conversion settings
                 </h2>
@@ -268,7 +251,7 @@ export default function ConvertPage() {
                 <div className="mt-6">
                   <label
                     htmlFor="output-format"
-                    className="mb-3 block text-sm text-zinc-400"
+                    className="mb-3 block text-sm text-zinc-600 dark:text-zinc-400"
                   >
                     Convert to
                   </label>
@@ -280,7 +263,7 @@ export default function ConvertPage() {
                       setOutputFormat(event.target.value as OutputFormat);
                       resetConvertedResult();
                     }}
-                    className="w-full rounded-xl border border-zinc-700 bg-[#12151d] px-4 py-3 text-white outline-none transition focus:border-violet-500"
+                    className="w-full rounded-2xl border border-zinc-300 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 text-zinc-950 dark:text-white outline-none transition focus:border-violet-500"
                   >
                     {formatOptions.map((format) => (
                       <option key={format.value} value={format.value}>
@@ -293,7 +276,7 @@ export default function ConvertPage() {
                 {outputFormat !== "image/png" && (
                   <div className="mt-6">
                     <div className="mb-3 flex items-center justify-between text-sm">
-                      <span className="text-zinc-400">Quality</span>
+                      <span className="text-zinc-600 dark:text-zinc-400">Quality</span>
                       <span>{Math.round(quality * 100)}%</span>
                     </div>
 
@@ -316,7 +299,7 @@ export default function ConvertPage() {
                   type="button"
                   onClick={handleConvert}
                   disabled={isConverting}
-                  className="mt-8 w-full rounded-xl bg-violet-500 px-5 py-3 font-semibold transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-8 w-full rounded-2xl bg-violet-600 px-5 py-3 font-semibold transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isConverting
                     ? "Converting..."
@@ -324,9 +307,9 @@ export default function ConvertPage() {
                 </button>
 
                 {convertedBlob && (
-                  <div className="mt-6 rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-4">
+                  <div className="mt-6 rounded-2xl border border-emerald-900/60 bg-emerald-950/20 p-4">
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-zinc-400">
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
                         Converted size
                       </span>
 
@@ -338,7 +321,7 @@ export default function ConvertPage() {
                     <button
                       type="button"
                       onClick={handleDownload}
-                      className="mt-4 w-full rounded-xl border border-zinc-700 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300"
+                      className="mt-4 w-full rounded-2xl border border-zinc-300 dark:border-white/15 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300"
                     >
                       Download {selectedFormat?.label ?? "converted"} image
                     </button>
@@ -349,12 +332,12 @@ export default function ConvertPage() {
           )}
 
           {convertedUrl && (
-            <div className="mt-6 rounded-2xl border border-zinc-800 bg-[#0d1016] p-5">
+            <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5">
               <h2 className="mb-4 text-lg font-semibold">
                 Converted preview
               </h2>
 
-              <div className="overflow-hidden rounded-xl bg-black">
+              <div className="overflow-hidden rounded-2xl bg-zinc-100 dark:bg-black/40">
                 <img
                   src={convertedUrl}
                   alt="Converted image preview"
@@ -363,8 +346,7 @@ export default function ConvertPage() {
               </div>
             </div>
           )}
-        </section>
       </div>
-    </main>
+    </ToolLayout>
   );
 }

@@ -1,352 +1,131 @@
 "use client";
 
-import ToolLayout from "../components/ToolLayout";
 import { useEffect, useState } from "react";
+import ToolShell, { ui } from "../components/ToolShell";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
-
-const formatOptions: {
-  value: OutputFormat;
-  label: string;
-  extension: string;
-}[] = [
-  {
-    value: "image/jpeg",
-    label: "JPG",
-    extension: "jpg",
-  },
-  {
-    value: "image/png",
-    label: "PNG",
-    extension: "png",
-  },
-  {
-    value: "image/webp",
-    label: "WebP",
-    extension: "webp",
-  },
+const formats = [
+  { value: "image/jpeg" as OutputFormat, label: "JPG", ext: "jpg" },
+  { value: "image/png" as OutputFormat, label: "PNG", ext: "png" },
+  { value: "image/webp" as OutputFormat, label: "WebP", ext: "webp" },
 ];
 
+function formatBytes(bytes: number) {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 export default function ConvertPage() {
-  const [originalFile, setOriginalFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [outputFormat, setOutputFormat] =
-    useState<OutputFormat>("image/webp");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const [format, setFormat] = useState<OutputFormat>("image/webp");
   const [quality, setQuality] = useState(0.9);
-  const [convertedBlob, setConvertedBlob] = useState<Blob | null>(null);
-  const [convertedUrl, setConvertedUrl] = useState("");
-  const [isConverting, setIsConverting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [result, setResult] = useState<Blob | null>(null);
+  const [resultUrl, setResultUrl] = useState("");
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [preview, resultUrl]);
 
-      if (convertedUrl) {
-        URL.revokeObjectURL(convertedUrl);
-      }
-    };
-  }, [previewUrl, convertedUrl]);
-
-  function formatBytes(bytes: number) {
-    if (bytes === 0) return "0 KB";
-
-    if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    }
-
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  function clearResult() {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    setResult(null); setResultUrl("");
   }
 
-  function resetConvertedResult() {
-    if (convertedUrl) {
-      URL.revokeObjectURL(convertedUrl);
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const next = e.target.files?.[0];
+    if (!next) return;
+    if (!["image/jpeg","image/png","image/webp"].includes(next.type)) {
+      setError("Please choose a JPG, PNG, or WebP image."); return;
     }
-
-    setConvertedBlob(null);
-    setConvertedUrl("");
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(next); setPreview(URL.createObjectURL(next)); setError(""); clearResult();
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
+  async function convert() {
     if (!file) return;
-
-    const supportedTypes = ["image/jpeg", "image/png", "image/webp"];
-
-    if (!supportedTypes.includes(file.type)) {
-      setErrorMessage("Please choose a JPG, PNG, or WebP image.");
-      return;
-    }
-
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    setOriginalFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setErrorMessage("");
-    resetConvertedResult();
-  }
-
-  async function handleConvert() {
-    if (!originalFile) {
-      setErrorMessage("Please choose an image first.");
-      return;
-    }
-
     try {
-      setIsConverting(true);
-      setErrorMessage("");
-      resetConvertedResult();
-
-      const image = new Image();
-      const sourceUrl = URL.createObjectURL(originalFile);
-
-      image.src = sourceUrl;
-
-      await new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve();
-        image.onerror = () => reject(new Error("Unable to read image."));
-      });
-
+      setWorking(true); setError(""); clearResult();
+      const src = URL.createObjectURL(file);
+      const image = new Image(); image.src = src;
+      await new Promise<void>((resolve, reject) => { image.onload=()=>resolve(); image.onerror=()=>reject(); });
       const canvas = document.createElement("canvas");
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
-
-      const context = canvas.getContext("2d");
-
-      if (!context) {
-        throw new Error("Your browser does not support image conversion.");
-      }
-
-      /*
-        JPG does not support transparency.
-        We add a white background before drawing transparent images.
-      */
-      if (outputFormat === "image/jpeg") {
-        context.fillStyle = "#ffffff";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      context.drawImage(image, 0, 0);
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (result) => {
-            if (result) {
-              resolve(result);
-            } else {
-              reject(new Error("Conversion failed."));
-            }
-          },
-          outputFormat,
-          outputFormat === "image/png" ? undefined : quality
-        );
-      });
-
-      URL.revokeObjectURL(sourceUrl);
-
-      const newUrl = URL.createObjectURL(blob);
-
-      setConvertedBlob(blob);
-      setConvertedUrl(newUrl);
-    } catch (error) {
-      console.error(error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Conversion failed. Please try another image."
-      );
-    } finally {
-      setIsConverting(false);
-    }
+      canvas.width=image.naturalWidth; canvas.height=image.naturalHeight;
+      const ctx=canvas.getContext("2d");
+      if (!ctx) throw new Error();
+      if (format==="image/jpeg") { ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height); }
+      ctx.drawImage(image,0,0);
+      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(),format,format==="image/png"?undefined:quality));
+      URL.revokeObjectURL(src);
+      setResult(blob); setResultUrl(URL.createObjectURL(blob));
+    } catch { setError("Conversion failed. Please try another image."); }
+    finally { setWorking(false); }
   }
 
-  function handleDownload() {
-    if (!convertedBlob || !originalFile) return;
-
-    const selectedFormat = formatOptions.find(
-      (format) => format.value === outputFormat
-    );
-
-    const originalName =
-      originalFile.name.replace(/\.[^/.]+$/, "") || "converted-image";
-
-    const link = document.createElement("a");
-
-    link.href = convertedUrl;
-    link.download = `${originalName}.${selectedFormat?.extension ?? "png"}`;
-
-    document.body.appendChild(link);
+  function download() {
+    if (!result || !file) return;
+    const chosen=formats.find(f=>f.value===format)!;
+    const link=document.createElement("a");
+    link.href=resultUrl;
+    link.download=`${file.name.replace(/\.[^/.]+$/,"")}.${chosen.ext}`;
     link.click();
-    link.remove();
   }
 
-  const selectedFormat = formatOptions.find(
-    (format) => format.value === outputFormat
-  );
+  const chosen=formats.find(f=>f.value===format)!;
 
   return (
-    <ToolLayout
-      eyebrow="Free image tool"
-      title="Convert Image"
-      description="Convert JPG, PNG, and WebP images locally with quality controls and instant previews."
-      icon={<span>↻</span>}
-    >
+    <ToolShell eyebrow="Free image tool" title="Convert Image" icon="↻"
+      description="Convert JPG, PNG, and WebP images locally with quality controls and instant previews.">
+      <label className={ui.upload}>
+        <span className="mb-4 text-4xl">⇄</span>
+        <span className="text-xl font-semibold">Drop an image here</span>
+        <span className="mt-2 text-sm text-zinc-500">or click to browse · JPG, PNG, WebP</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onFile} className="hidden" />
+      </label>
+      {error && <div className={`mt-5 ${ui.error}`}>{error}</div>}
 
-      <div>
-          <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 dark:border-white/15 bg-[#0d1016] px-6 text-center transition hover:border-violet-500">
-            <span className="mb-4 text-4xl">🔄</span>
+      {file && (
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <div className={ui.panel}>
+            <img src={preview} alt="Original preview" className="h-80 w-full rounded-xl bg-black object-contain" />
+            <p className="mt-4 truncate font-medium">{file.name}</p>
+            <p className="mt-1 text-sm text-zinc-500">Original · {formatBytes(file.size)}</p>
+          </div>
 
-            <span className="text-lg font-semibold">
-              Choose an image
-            </span>
+          <div className={ui.panel}>
+            <h2 className="text-xl font-semibold">Conversion settings</h2>
+            <label className="mt-6 block text-sm text-zinc-400">Convert to</label>
+            <select value={format} onChange={(e)=>{setFormat(e.target.value as OutputFormat);clearResult();}} className={`mt-2 ${ui.input}`}>
+              {formats.map(f=><option key={f.value} value={f.value}>{f.label}</option>)}
+            </select>
 
-            <span className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
-              JPG, PNG, or WebP
-            </span>
-
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
-
-          {errorMessage && (
-            <div className="mt-5 rounded-2xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm text-red-300">
-              {errorMessage}
-            </div>
-          )}
-
-          {originalFile && (
-            <div className="mt-8 grid gap-6 lg:grid-cols-2">
-              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-100 dark:bg-black/40">
-                <img
-                  src={previewUrl}
-                  alt="Original image preview"
-                  className="h-80 w-full object-contain"
-                />
-
-                <div className="border-t border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-4">
-                  <p className="truncate text-sm font-medium">
-                    {originalFile.name}
-                  </p>
-
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                    Original: {formatBytes(originalFile.size)}
-                  </p>
-                </div>
+            {format!=="image/png" && <>
+              <div className="mt-6 flex justify-between text-sm">
+                <span className="text-zinc-400">Quality</span><span>{Math.round(quality*100)}%</span>
               </div>
+              <input type="range" min="0.2" max="1" step="0.05" value={quality}
+                onChange={(e)=>{setQuality(Number(e.target.value));clearResult();}}
+                className="mt-3 w-full accent-violet-500" />
+            </>}
 
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-6">
-                <h2 className="text-xl font-semibold">
-                  Conversion settings
-                </h2>
+            <button onClick={convert} disabled={working} className={`mt-8 ${ui.primary}`}>
+              {working ? "Converting..." : `Convert to ${chosen.label}`}
+            </button>
+            {result && <div className={`mt-5 ${ui.success}`}>
+              <div className="flex justify-between text-sm"><span className="text-zinc-400">Converted size</span><span>{formatBytes(result.size)}</span></div>
+              <button onClick={download} className={`mt-4 ${ui.secondary}`}>Download {chosen.label}</button>
+            </div>}
+          </div>
+        </div>
+      )}
 
-                <div className="mt-6">
-                  <label
-                    htmlFor="output-format"
-                    className="mb-3 block text-sm text-zinc-600 dark:text-zinc-400"
-                  >
-                    Convert to
-                  </label>
-
-                  <select
-                    id="output-format"
-                    value={outputFormat}
-                    onChange={(event) => {
-                      setOutputFormat(event.target.value as OutputFormat);
-                      resetConvertedResult();
-                    }}
-                    className="w-full rounded-2xl border border-zinc-300 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 text-zinc-950 dark:text-white outline-none transition focus:border-violet-500"
-                  >
-                    {formatOptions.map((format) => (
-                      <option key={format.value} value={format.value}>
-                        {format.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {outputFormat !== "image/png" && (
-                  <div className="mt-6">
-                    <div className="mb-3 flex items-center justify-between text-sm">
-                      <span className="text-zinc-600 dark:text-zinc-400">Quality</span>
-                      <span>{Math.round(quality * 100)}%</span>
-                    </div>
-
-                    <input
-                      type="range"
-                      min="0.2"
-                      max="1"
-                      step="0.05"
-                      value={quality}
-                      onChange={(event) => {
-                        setQuality(Number(event.target.value));
-                        resetConvertedResult();
-                      }}
-                      className="w-full accent-violet-500"
-                    />
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleConvert}
-                  disabled={isConverting}
-                  className="mt-8 w-full rounded-2xl bg-violet-600 px-5 py-3 font-semibold transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isConverting
-                    ? "Converting..."
-                    : `Convert to ${selectedFormat?.label ?? "image"}`}
-                </button>
-
-                {convertedBlob && (
-                  <div className="mt-6 rounded-2xl border border-emerald-900/60 bg-emerald-950/20 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Converted size
-                      </span>
-
-                      <span className="font-medium text-emerald-400">
-                        {formatBytes(convertedBlob.size)}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleDownload}
-                      className="mt-4 w-full rounded-2xl border border-zinc-300 dark:border-white/15 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300"
-                    >
-                      Download {selectedFormat?.label ?? "converted"} image
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {convertedUrl && (
-            <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5">
-              <h2 className="mb-4 text-lg font-semibold">
-                Converted preview
-              </h2>
-
-              <div className="overflow-hidden rounded-2xl bg-zinc-100 dark:bg-black/40">
-                <img
-                  src={convertedUrl}
-                  alt="Converted image preview"
-                  className="max-h-[500px] w-full object-contain"
-                />
-              </div>
-            </div>
-          )}
-      </div>
-    </ToolLayout>
+      {resultUrl && <div className={`mt-5 ${ui.panel}`}>
+        <h2 className="mb-4 text-xl font-semibold">Converted preview</h2>
+        <img src={resultUrl} alt="Converted preview" className="max-h-[520px] w-full rounded-xl bg-black object-contain" />
+      </div>}
+    </ToolShell>
   );
 }

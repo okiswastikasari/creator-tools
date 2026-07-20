@@ -1,13 +1,13 @@
 "use client";
 
-import ToolLayout from "../components/ToolLayout";
+import Link from "next/link";
 import QRCode from "qrcode";
 import { useMemo, useState } from "react";
 
 type ErrorCorrectionLevel = "L" | "M" | "Q" | "H";
 
 export default function QRPage() {
-  const [value, setValue] = useState("https://creator-tools-5dflticq4-creators-kit.vercel.app");
+  const [value, setValue] = useState("https://creator-tools-two.vercel.app");
   const [size, setSize] = useState(320);
   const [foreground, setForeground] = useState("#111827");
   const [background, setBackground] = useState("#FFFFFF");
@@ -20,6 +20,12 @@ export default function QRPage() {
   const [copied, setCopied] = useState(false);
 
   const trimmedValue = useMemo(() => value.trim(), [value]);
+
+  function clearResult() {
+    setQrPngUrl("");
+    setQrSvg("");
+    setErrorMessage("");
+  }
 
   async function handleGenerate() {
     if (!trimmedValue) {
@@ -109,58 +115,95 @@ export default function QRPage() {
     setCopied(false);
   }
 
-  return (
-    <ToolLayout
-      eyebrow="Free utility tool"
-      title="QR Code Generator"
-      description="Create custom QR codes from any URL or text and download them as PNG or SVG."
-      icon={<span>▦</span>}
-    >
+  const panelClass =
+    "rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-[#0d1016] dark:text-white md:p-6";
 
-      <div>
+  const fieldClass =
+    "w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-[#12151d] dark:text-white dark:placeholder:text-zinc-600";
+
+  return (
+    <main className="min-h-screen bg-[#090b10] px-5 py-10 text-white md:px-8 md:py-12">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="inline-flex rounded-full border border-zinc-800 bg-zinc-900/70 px-4 py-2 text-sm text-zinc-200 transition hover:border-violet-500 hover:text-violet-300"
+          >
+            ← CreatorKit
+          </Link>
+
+          <span className="rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1.5 text-xs text-zinc-400">
+            Private · Browser-based
+          </span>
+        </div>
+
+        <header className="mb-10 text-center">
+          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/10 text-xl text-violet-300">
+            ▦
+          </div>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-violet-400">
+            Free utility tool
+          </p>
+          <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
+            QR Code Generator
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-400 md:text-lg">
+            Create custom QR codes from any URL or text and download them as PNG or SVG.
+          </p>
+        </header>
+
+        <section className="rounded-3xl border border-zinc-800 bg-[#12151d] p-4 shadow-2xl shadow-black/20 md:p-7">
           {errorMessage && (
-            <div className="mb-6 rounded-2xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm text-red-300">{errorMessage}</div>
+            <div className="mb-6 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5 md:p-6">
+          <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+            <div className={panelClass}>
               <h2 className="text-xl font-semibold">QR settings</h2>
 
               <div className="mt-6">
-                <label htmlFor="qr-value" className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">URL or text</label>
+                <label htmlFor="qr-value" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  URL or text
+                </label>
                 <textarea
                   id="qr-value"
                   value={value}
                   onChange={(event) => {
                     setValue(event.target.value);
-                    setQrPngUrl("");
-                    setQrSvg("");
-                    setErrorMessage("");
+                    clearResult();
                   }}
                   placeholder="Paste a URL, message, phone number, email, or any text..."
                   rows={5}
-                  className="w-full resize-none rounded-2xl border border-zinc-300 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 text-zinc-950 dark:text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                  className={`${fieldClass} resize-none`}
                 />
-                <div className="mt-2 flex items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-500">
+                <div className="mt-2 flex items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-400">
                   <span>{value.length} characters</span>
-                  <button type="button" onClick={handleCopyText} disabled={!trimmedValue} className="transition hover:text-violet-300 disabled:cursor-not-allowed disabled:opacity-40">
-                    {copied ? "Copied" : "Copy text"}
+                  <button
+                    type="button"
+                    onClick={handleCopyText}
+                    disabled={!trimmedValue}
+                    className="font-medium text-violet-600 transition hover:text-violet-500 disabled:cursor-not-allowed disabled:opacity-40 dark:text-violet-300"
+                  >
+                    {copied ? "Copied!" : "Copy text"}
                   </button>
                 </div>
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="qr-size" className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">QR size</label>
+                  <label htmlFor="qr-size" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    QR size
+                  </label>
                   <select
                     id="qr-size"
                     value={size}
                     onChange={(event) => {
                       setSize(Number(event.target.value));
-                      setQrPngUrl("");
-                      setQrSvg("");
+                      clearResult();
                     }}
-                    className="w-full rounded-2xl border border-zinc-300 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 text-zinc-950 dark:text-white outline-none transition focus:border-violet-500"
+                    className={fieldClass}
                   >
                     <option value={256}>256 × 256</option>
                     <option value={320}>320 × 320</option>
@@ -171,16 +214,17 @@ export default function QRPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="qr-level" className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">Error correction</label>
+                  <label htmlFor="qr-level" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Error correction
+                  </label>
                   <select
                     id="qr-level"
                     value={errorCorrectionLevel}
                     onChange={(event) => {
                       setErrorCorrectionLevel(event.target.value as ErrorCorrectionLevel);
-                      setQrPngUrl("");
-                      setQrSvg("");
+                      clearResult();
                     }}
-                    className="w-full rounded-2xl border border-zinc-300 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 text-zinc-950 dark:text-white outline-none transition focus:border-violet-500"
+                    className={fieldClass}
                   >
                     <option value="L">Low</option>
                     <option value="M">Medium</option>
@@ -191,68 +235,109 @@ export default function QRPage() {
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <label className="rounded-2xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-4">
-                  <span className="block text-sm text-zinc-600 dark:text-zinc-400">QR color</span>
+                <label className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-[#12151d]">
+                  <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">QR color</span>
                   <div className="mt-3 flex items-center gap-3">
-                    <input type="color" value={foreground} onChange={(event) => { setForeground(event.target.value); setQrPngUrl(""); setQrSvg(""); }} className="h-10 w-14 cursor-pointer rounded border-0 bg-transparent" />
-                    <span className="font-mono text-sm">{foreground.toUpperCase()}</span>
+                    <input
+                      type="color"
+                      value={foreground}
+                      onChange={(event) => {
+                        setForeground(event.target.value);
+                        clearResult();
+                      }}
+                      className="h-10 w-14 cursor-pointer rounded border-0 bg-transparent"
+                    />
+                    <span className="font-mono text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                      {foreground.toUpperCase()}
+                    </span>
                   </div>
                 </label>
 
-                <label className="rounded-2xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-4">
-                  <span className="block text-sm text-zinc-600 dark:text-zinc-400">Background</span>
+                <label className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-[#12151d]">
+                  <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Background</span>
                   <div className="mt-3 flex items-center gap-3">
-                    <input type="color" value={background} onChange={(event) => { setBackground(event.target.value); setQrPngUrl(""); setQrSvg(""); }} className="h-10 w-14 cursor-pointer rounded border-0 bg-transparent" />
-                    <span className="font-mono text-sm">{background.toUpperCase()}</span>
+                    <input
+                      type="color"
+                      value={background}
+                      onChange={(event) => {
+                        setBackground(event.target.value);
+                        clearResult();
+                      }}
+                      className="h-10 w-14 cursor-pointer rounded border-0 bg-transparent"
+                    />
+                    <span className="font-mono text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                      {background.toUpperCase()}
+                    </span>
                   </div>
                 </label>
               </div>
 
-              <button type="button" onClick={handleGenerate} disabled={isGenerating || !trimmedValue} className="mt-8 w-full rounded-2xl bg-violet-600 px-5 py-3 font-semibold transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50">
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating || !trimmedValue}
+                className="mt-8 w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3.5 font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 {isGenerating ? "Generating..." : "Generate QR code"}
               </button>
 
-              <button type="button" onClick={handleReset} className="mt-3 w-full rounded-2xl border border-zinc-300 dark:border-white/15 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300">Reset</button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-3 w-full rounded-xl border border-zinc-300 bg-white px-5 py-3 font-semibold text-zinc-800 transition hover:border-violet-500 hover:text-violet-600 dark:border-zinc-700 dark:bg-transparent dark:text-zinc-200 dark:hover:text-violet-300"
+              >
+                Reset
+              </button>
             </div>
 
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5 md:p-6">
+            <div className={panelClass}>
               <h2 className="text-xl font-semibold">QR preview</h2>
-              <div className="mt-6 flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-zinc-300 dark:border-white/15 p-6" style={{ backgroundColor: qrPngUrl ? background : undefined }}>
+              <div
+                className="mt-6 flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-zinc-300 p-6 dark:border-zinc-700"
+                style={{ backgroundColor: qrPngUrl ? background : undefined }}
+              >
                 {qrPngUrl ? (
                   <img src={qrPngUrl} alt="Generated QR code" className="h-auto max-h-[320px] w-full max-w-[320px]" />
                 ) : (
                   <div className="text-center">
-                    <div className="text-5xl">▦</div>
-                    <p className="mt-4 font-medium text-zinc-300">Your QR code will appear here</p>
-                    <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">Enter text and click Generate QR code.</p>
+                    <div className="text-5xl text-zinc-400 dark:text-zinc-500">▦</div>
+                    <p className="mt-4 font-semibold text-zinc-800 dark:text-zinc-200">Your QR code will appear here</p>
+                    <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Enter text and click Generate QR code.</p>
                   </div>
                 )}
               </div>
 
               {qrPngUrl && (
                 <div className="mt-5 space-y-3">
-                  <button type="button" onClick={handleDownloadPng} className="w-full rounded-2xl bg-white px-5 py-3 font-semibold text-zinc-950 transition hover:bg-zinc-200">Download PNG</button>
-                  <button type="button" onClick={handleDownloadSvg} className="w-full rounded-2xl border border-zinc-300 dark:border-white/15 px-5 py-3 font-semibold transition hover:border-violet-500 hover:text-violet-300">Download SVG</button>
+                  <button type="button" onClick={handleDownloadPng} className="w-full rounded-xl bg-zinc-950 px-5 py-3 font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200">
+                    Download PNG
+                  </button>
+                  <button type="button" onClick={handleDownloadSvg} className="w-full rounded-xl border border-zinc-300 px-5 py-3 font-semibold text-zinc-800 transition hover:border-violet-500 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-200 dark:hover:text-violet-300">
+                    Download SVG
+                  </button>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 text-sm text-zinc-600 dark:text-zinc-400 md:grid-cols-3">
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5">
-              <p className="font-semibold text-zinc-950 dark:text-white">No uploads</p>
-              <p className="mt-2 leading-6">Your text is processed locally in your browser.</p>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5">
-              <p className="font-semibold text-zinc-950 dark:text-white">PNG and SVG</p>
-              <p className="mt-2 leading-6">Download a sharp file for digital use or printing.</p>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-zinc-100 dark:bg-black/40/20 p-5">
-              <p className="font-semibold text-zinc-950 dark:text-white">Custom colors</p>
-              <p className="mt-2 leading-6">Match the QR code to your personal or business branding.</p>
-            </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            {[
+              { title: "No uploads", text: "Your text is processed locally in your browser." },
+              { title: "PNG and SVG", text: "Download a sharp file for digital use or printing." },
+              { title: "Custom colors", text: "Match your QR code to your personal or business branding." },
+            ].map((item) => (
+              <div key={item.title} className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 dark:border-zinc-800 dark:bg-[#0d1016] dark:text-white">
+                <p className="font-semibold">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{item.text}</p>
+              </div>
+            ))}
           </div>
+        </section>
+
+        <p className="mt-5 text-center text-xs text-zinc-500">
+          Your files stay on your device and are processed locally in your browser.
+        </p>
       </div>
-    </ToolLayout>
+    </main>
   );
 }
